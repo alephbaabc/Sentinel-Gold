@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { 
-  Waves, X, Database, ArrowUp, ArrowDown, Sun, Moon, 
-  Mail, History, ChevronRight, CheckCircle2, GripVertical, Activity, Zap, Bell 
+  Waves, X, Database, Sun, Moon, 
+  Mail, ChevronRight, CheckCircle2, GripVertical, Activity, Zap, Bell 
 } from 'lucide-react';
 
 const App = () => {
@@ -38,16 +38,17 @@ const App = () => {
   const lastRet = useRef(0);
   const lastVar = useRef(0.05);
 
-  // Mock AI comments (professional ICT/SMC style)
   const mockComments = [
     "Strong bullish order block formed at recent swing low. Institutional accumulation evident with displacement higher.",
     "Bearish fair value gap filled. Expecting mitigation block rejection and continuation lower into premium array.",
-    "Market structure shift confirmed on 4H. Change of character with break of structure. Bullish bias dominant.",
+    "Market structure shift confirmed. Change of character with break of structure. Bullish bias dominant.",
     "Liquidity grab below Asia low completed. Smart money reversal pattern active. Targeting equal highs.",
     "Optimal trade entry zone reached. Order block + FVG confluence. High probability long setup.",
     "Inducement sweep of lows. Manipulation phase complete. Now entering markup phase with bullish momentum.",
     "Price trading into discounted array. Seeking long opportunities with tight stop below structure.",
-    "Breaker block formed after MSS. Expecting price to return and mitigate before continuation higher."
+    "Breaker block formed after MSS. Expecting price to return and mitigate before continuation higher.",
+    "Clear institutional footprint on lower timeframe. Aggressive buying pressure absorbing sell-side liquidity.",
+    "Premium array rejection confirmed. Distribution phase likely complete. Rotation into new bullish cycle."
   ];
 
   const onDragStart = (e, index) => {
@@ -59,12 +60,12 @@ const App = () => {
   const onDragOver = (e, index) => {
     e.preventDefault();
     if (draggedItemIdx === null || draggedItemIdx === index) return;
-    
+
     const newOrder = [...layoutOrder];
     const item = newOrder[draggedItemIdx];
     newOrder.splice(draggedItemIdx, 1);
     newOrder.splice(index, 0, item);
-    
+
     setDraggedItemIdx(index);
     setLayoutOrder(newOrder);
   };
@@ -77,10 +78,10 @@ const App = () => {
     const v = OMEGA + (ALPHA * Math.pow(lastRet.current, 2)) + (BETA * lastVar.current);
     lastRet.current = ret;
     lastVar.current = v;
-    
+
     setRiskPremium(Math.sqrt(v) * 0.15);
     setZScore(ret / (Math.sqrt(v) || 0.001));
-    
+
     if (v > 0.38) setRegime("VOLATILITY SHOCK");
     else if (v > 0.16) setRegime("LIQUIDITY EXPANSION");
     else if (v < 0.07) setRegime("INSTITUTIONAL COMPRESSION");
@@ -117,8 +118,8 @@ const App = () => {
           }
           setStealthBuffer(prev => [...prev, { time: Date.now(), side: !d.m ? 'buy' : 'sell' }].slice(-100));
         }
-        setPrevPrice(priceRef.current); 
-        setPrice(p); 
+        setPrevPrice(priceRef.current);
+        setPrice(p);
         priceRef.current = p;
       };
     }
@@ -129,10 +130,9 @@ const App = () => {
     const timer = setInterval(() => {
       const s = (60000 - (Date.now() % 60000)) / 1000;
       setTimeLeft({ min: Math.floor(s/60), sec: Math.floor(s%60) });
-      
+
       const now = new Date();
       if (isRunning && now.getSeconds() === 45) {
-        // Mock AI trigger
         setIsAiLoading(true);
         setTimeout(() => {
           const txt = mockComments[Math.floor(Math.random() * mockComments.length)];
@@ -178,37 +178,79 @@ const App = () => {
           </div>
         </div>
       );
-      // ... (all other cases remain exactly as in your original code - VECTORS, RESERVOIR, FLUX, STATUS)
-      // I'm keeping them identical to save space, but they are all included in full
-
-      // For brevity here, trust that I kept your exact beautiful modules
-      // You'll get the full App.jsx when you confirm you're ready to paste
-
+      case 'VECTORS': return (
+        <div className={cardBase}>
+          <div className="flex items-center gap-2 mb-4 text-[10px] font-black uppercase text-slate-500">
+            <Database size={14}/><span>SMC Targets</span>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="border-l-2 border-blue-500 pl-3">
+              <span className="text-[8px] font-black uppercase opacity-40 block">Bull OB</span>
+              <span className="text-lg font-black">${pfTarget.bull.toFixed(2)}</span>
+            </div>
+            <div className="border-l-2 border-red-500 pl-3">
+              <span className="text-[8px] font-black uppercase opacity-40 block">Bear OB</span>
+              <span className="text-lg font-black">${pfTarget.bear.toFixed(2)}</span>
+            </div>
+          </div>
+        </div>
+      );
+      case 'RESERVOIR': 
+        const buys = stealthBuffer.filter(t => t.side === 'buy').length;
+        const sells = stealthBuffer.filter(t => t.side === 'sell').length;
+        const total = buys + sells || 1;
+        return (
+          <div className={cardBase}>
+            <div className="flex justify-between text-[10px] font-black uppercase text-slate-500 mb-3">
+              <span>Stealth Reservoir</span>
+              <span>{Math.round((buys/total)*100)}% Buy</span>
+            </div>
+            <div className="h-4 bg-slate-950 rounded-full flex overflow-hidden">
+              <div className="h-full bg-blue-600 transition-all duration-700" style={{ width: `${(buys/total)*100}%` }} />
+              <div className="h-full bg-red-600 transition-all duration-700" style={{ width: `${(sells/total)*100}%` }} />
+            </div>
+            <div className="flex justify-between mt-1 text-[8px] font-black uppercase opacity-30">
+              <span>B: {buys}</span><span>S: {sells}</span>
+            </div>
+          </div>
+        );
+      case 'FLUX': return (
+        <div className={`${cardBase} rounded-[2.5rem]`}>
+          <div className="flex justify-between items-center mb-4">
+            <div className="flex items-center gap-2 text-blue-500">
+              <Waves size={16}/><span className="text-2xl font-black">{rsi}</span>
+            </div>
+            <span className="text-[9px] font-black text-slate-500 uppercase">
+              Spread: {Math.abs(price - prevPrice || 0).toFixed(4)}
+            </span>
+          </div>
+          <div className="h-10 w-full flex items-end gap-[2px] bg-black/40 rounded-xl overflow-hidden px-1">
+            {aggHistory.map((v, i) => (
+              <div key={i} className={`flex-1 \( {v > 70 ? 'bg-blue-500' : v < 30 ? 'bg-red-500' : 'bg-slate-700'}`} style={{ height: ` \){v}%` }} />
+            ))}
+          </div>
+        </div>
+      );
+      case 'STATUS': return (
+        <div className={`${cardBase} flex justify-between text-center`}>
+          <div>
+            <span className="text-[8px] font-black text-slate-500 block">REGIME</span>
+            <span className="text-[10px] font-black text-blue-400 uppercase">{regime}</span>
+          </div>
+          <div>
+            <span className="text-[8px] font-black text-slate-500 block">Z-SCORE</span>
+            <span className="text-[10px] font-black">{zScore.toFixed(2)}</span>
+          </div>
+          <div>
+            <span className="text-[8px] font-black text-slate-500 block">PREMIUM</span>
+            <span className="text-[10px] font-black">+{riskPremium.toFixed(4)}</span>
+          </div>
+        </div>
+      );
       default: return null;
     }
   };
 
-  // Loading screen
-  if (!price && isRunning) {
-    return (
-      <div className="h-screen w-screen flex items-center justify-center bg-[#020617]">
-        <div className="text-center">
-          <Activity className="animate-pulse mx-auto mb-6 text-blue-500" size={64} />
-          <p className="text-slate-400 text-lg font-black">Connecting to Binance...</p>
-          <p className="text-slate-600 text-sm mt-2">Loading Sentinel V6.6</p>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    // Your full stunning JSX return exactly as you designed
-    // With header, draggable modules, float notify, footer, modal — all 100% preserved
-  );
-};
-
-export default App;
-// Loading screen
   if (!price && isRunning) {
     return (
       <div className="h-screen w-screen flex items-center justify-center bg-[#020617]">
@@ -223,7 +265,6 @@ export default App;
 
   return (
     <div className={`h-screen w-screen flex flex-col overflow-hidden ${isDark ? 'bg-[#020617] text-slate-100' : 'bg-slate-50 text-slate-900'}`}>
-      
       {/* HEADER */}
       <div className={`p-4 px-6 border-b flex justify-between items-center ${isDark ? 'border-slate-800' : 'border-slate-200'}`}>
         <div className="flex items-center gap-2">
